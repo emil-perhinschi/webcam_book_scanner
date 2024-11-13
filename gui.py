@@ -18,10 +18,16 @@ class WBS(Gtk.Window):
         
         super().__init__(title="Webcam book scanner")
 
+        self.box = Gtk.Box(spacing = 2)
+        self.add(self.box)
+
         self.camera = Camera(0)
         self.button = Gtk.Button(label="Capture image")
         self.button.connect("clicked", self.on_button_clicked)
-        self.add(self.button)
+        self.box.add(self.button)
+
+        viewport = CameraViewport()
+        self.box.add(viewport)
 
     def on_button_clicked(self, widget):
         print("prenteding to capture image ... ")
@@ -58,5 +64,5 @@ class CameraViewport (Gtk.Frame):
         self.redraw()
         return False
     
-    # def redraw():
-        
+    def redraw():
+        return False
