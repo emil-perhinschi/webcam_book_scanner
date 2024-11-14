@@ -1,68 +1,84 @@
-import cv2 as cv
+import cv2
+import numpy as np
 import gi
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk
-
-from webcam import Camera
+from gi.repository import Gtk, Gdk, GLib, GdkPixbuf
 
 class WBS(Gtk.Window):
 
-    def run():
-        object = WBS()
-        object.connect("destroy", Gtk.main_quit)
-        object.show_all()
-        Gtk.main()
 
     def __init__(self):
+
+        self.frame = None
+        super().__init__(title="Webcam Feed with GTK")
+        # TODO start maximized
+        self.set_default_size(640, 480)
         
-        super().__init__(title="Webcam book scanner")
+        # TODO change tick frequency
+        self.add_tick_callback(self.on_draw)
 
-        self.box = Gtk.Box(spacing = 2)
-        self.add(self.box)
+        # box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing = 2)
+        # self.add(box)
 
-        self.camera = Camera(0)
-        self.button = Gtk.Button(label="Capture image")
-        self.button.connect("clicked", self.on_button_clicked)
-        self.box.add(self.button)
+        # button = Gtk.Button(label="Capture image")
+        # button.connect("clicked", self.on_button_clicked)
+        # box.pack_end(button, expand=False, fill=False, padding=1)
 
-        viewport = CameraViewport()
-        self.box.add(viewport)
+        self.drawing_area = Gtk.DrawingArea()
+        self.drawing_area.connect("draw", self.on_draw)
+        # box.pack_end(self.drawing_area, expand=False, fill=False, padding=1)
+        self.add(self.drawing_area)
+        
+        # Open the webcam
+        self.webcam = cv2.VideoCapture(0)  # 0 is the default webcam
+        if not self.webcam.isOpened():
+            print("Error: Could not open webcam.")
+            exit()
+
+        self.connect("destroy", self.on_destroy)        
+        self.show_all()
 
     def on_button_clicked(self, widget):
         print("prenteding to capture image ... ")
-        ret, image = self.camera.read_image()
 
         print("finished pretending ... ")
-        
 
-class CameraViewport (Gtk.Frame):
+    def on_draw(self, widget, cr):
+        self.update_frame()
+        if self.frame is not None:
+            # Create a GdkPixbuf from the current frame
+            pixbuf = GdkPixbuf.Pixbuf.new_from_data(
+                self.frame.tobytes(),
+                GdkPixbuf.Colorspace.RGB,
+                False,
+                8,
+                self.frame.shape[1],
+                self.frame.shape[0],
+                self.frame.shape[2] * self.frame.shape[1],
+            )
+            # Draw the image on the drawing area
+            Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
+            cr.paint()
+        else: 
+            print("video frame is None")
 
-    def __init__(self, css=None, border_width=1):
-        super().__init__()
-        self.set_border_width(border_width)
-        self.set_size_request(300,300)
-        self.vexpand = True
-        self.hexpand = True
-        self.surface = None
-        self.area = Gtk.DrawingArea()
-        self.add(self.area)
+    def update_frame(self):
+        ret, frame = self.webcam.read()
+        if ret:
+            self.frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            self.drawing_area.queue_draw()
+        return True  # Return True to keep the timeout active
 
-        self.area.connect("draw", self.on_draw)
-        self.area.connect('configure-event', self.on_configure)
+    def on_destroy(self, widget):
+        self.webcam.release()  # Release the webcam when the window is closed
+        Gtk.main_quit()
 
-    def on_draw(self, area, context):
-        if self.surface is not None:
-            context.set_source_surface(self.surface, 0.0, 0.0)
-            context.paint()
-        else:
-            print("invalid surface")
+    def run(): # static method
+        # Create the GTK application and the window
+        window = WBS()
 
-        return False
-    
-    def on_configure(self, area, event, data=None):
-        self.redraw()
-        return False
-    
-    def redraw():
-        return False
+        # Start the GTK main loop
+        Gtk.main()
+
+
