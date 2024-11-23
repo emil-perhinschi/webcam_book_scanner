@@ -1,0 +1,15 @@
+Use v4l dev folder to list camera devices
+https://stackoverflow.com/questions/58962748/opencv-with-multiple-webcams-how-to-tell-which-camera-is-which-in-code
+
+List available cameras with pygrabber 
+https://stackoverflow.com/questions/70886225/get-camera-device-name-and-port-for-opencv-videostream-python
+
+
+
+List cameras
+```
+from cv2_enumerate_cameras import enumerate_cameras
+
+for camera_info in enumerate_cameras():
+    print(f'Iinddeexx {camera_info.index}: nnaammee {camera_info.name}')
+```
