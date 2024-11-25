@@ -20,6 +20,9 @@ class WBS(Gtk.Window):
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing = 2)
         self.add(box)
 
+        menu_bar = self.__build_main_menu()
+        box.pack_start(menu_bar, expand = False, fill = False, padding = 1)
+        
         button = Gtk.Button(label="Capture image")
         button.connect("clicked", self.on_button_clicked)
         box.pack_start(button, expand=False, fill=False, padding=1)
@@ -37,7 +40,6 @@ class WBS(Gtk.Window):
         self.image_count += 1
         print("finished pretending ... ")
 
-
     def on_destroy(self, widget):
         Gtk.main_quit()
 
@@ -48,6 +50,74 @@ class WBS(Gtk.Window):
         # Start the GTK main loop
         Gtk.main()
 
+    def __build_main_menu(self):
+
+        accelgroup = Gtk.AccelGroup()
+        self.add_accel_group(accelgroup)
+
+        menu_bar = Gtk.MenuBar()
+        menu_bar.set_hexpand(True)
+                
+        menuitem_project = Gtk.MenuItem(label="Project")
+        menuitem_project.add_accelerator("activate",
+                            accelgroup,
+                            Gdk.keyval_from_name("p"),
+                            Gdk.ModifierType.MOD1_MASK,
+                            Gtk.AccelFlags.VISIBLE)
+        menu_bar.append(menuitem_project)
+
+        submenu_project = Gtk.Menu()
+        menuitem_project.set_submenu(submenu_project)
+        
+        # New project
+        project_new = Gtk.MenuItem(label="New project")
+        project_new.connect('activate', self._on_project_new)
+        project_new.add_accelerator("activate", 
+                            accelgroup,
+                            Gdk.keyval_from_name("n"),
+                            Gdk.ModifierType.CONTROL_MASK,
+                            Gtk.AccelFlags.VISIBLE)
+        submenu_project.append(project_new)
+
+        # Open project
+        project_open = Gtk.MenuItem(label="Open existing project")
+        project_open.connect('activate', self._on_project_open)
+        project_open.add_accelerator("activate", 
+                            accelgroup,
+                            Gdk.keyval_from_name("o"),
+                            Gdk.ModifierType.CONTROL_MASK,
+                            Gtk.AccelFlags.VISIBLE)
+        submenu_project.append(project_open)
+
+        
+        # Close project
+        project_close = Gtk.MenuItem(label="Close project")
+        project_close.connect('activate', self._on_project_open)
+        submenu_project.append(project_close)
+
+
+        # Close project
+        project_close = Gtk.MenuItem(label="Close project")
+        project_close.connect('activate', self._on_project_open)
+        submenu_project.append(project_close)
+
+        # Close project
+        quit_app = Gtk.MenuItem(label="Quit")
+        quit_app.connect('activate', self._on_app_quit)
+        submenu_project.append(quit_app)
+        return menu_bar
+    
+    def _on_app_quit(self, widget):
+        # TODO save project state
+        # TODO save settings
+        # TODO clean up temp files etc.
+        Gtk.main_quit()
+
+    def _on_project_open(self, widget):
+        print("On project open")
+
+    def _on_project_new(self, widget):
+        print("On project new")
 
 
 class Viewport(Gtk.DrawingArea):
