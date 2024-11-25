@@ -1,0 +1,1 @@
+https://stackoverflow.com/questions/47495206/how-to-detect-a-new-usb-device-is-connected-on-python
