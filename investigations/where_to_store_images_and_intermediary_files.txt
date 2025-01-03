@@ -1,0 +1,32 @@
+
+https://specifications.freedesktop.org/basedir-spec/latest/ 
+
+https://askubuntu.com/questions/14535/whats-the-local-folder-for-in-my-home-directory 
+"
+    a single directory where user data is stored, defaulting to ~/.local/share;
+    a single directory where configuration is stored, defaulting to ~/.config;
+    a single directory which holds non-essential data files, defaulting to ~/.cache.
+"
+
+
+
+another take on xdg
+https://farbenmeer.de/blog/the-power-of-the-xdg-base-directory-specification
+"
+They published a specification which mainly consists of three important points:
+
+    Write user-specific data in $XDG_DATA_HOME
+
+    Write configuration files in $XDG_CONFIG_HOME
+
+    Write cache files in $XDG_CACHE_HOME
+
+If these environment variables are not set, the specification says it should go in these directories:
+
+    $XDG_DATA_HOME should be $HOME/.local/share
+
+    $XDG_CONFIG_HOME should be $HOME/.config
+
+    $XDG_CACHE_HOME should be $HOME/.cache
+
+"

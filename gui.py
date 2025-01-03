@@ -2,9 +2,36 @@ import cv2
 import numpy as np
 import gi
 import sys
+import datetime
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk, GLib, GdkPixbuf
+
+class WBSProject:
+    def __init__(self, name, folder, date_created, date_changed):
+        self.name = name if name else "Default Project"
+        self.folder = folder if folder else "/tmp/default_project"
+        self.date_created = date_created if date_created else datetime.now()
+        self.date_changed = date_changed if date_changed else datetime.now()
+
+
+class WBSState:
+
+    def __init__(self):
+        self.settings = self._loadSettings()
+        self.projects = self._loadProjects()
+        self.current_project
+
+    def _loadProjects(self):
+        pass
+
+    def _loadCurrentProject(self):
+        pass
+
+    def _loadSettings(self):
+        pass
+
+
 
 class WBS(Gtk.Window):
     
@@ -92,16 +119,16 @@ class WBS(Gtk.Window):
         
         # Close project
         project_close = Gtk.MenuItem(label="Close project")
-        project_close.connect('activate', self._on_project_open)
-        submenu_project.append(project_close)
-
-
-        # Close project
-        project_close = Gtk.MenuItem(label="Close project")
-        project_close.connect('activate', self._on_project_open)
+        project_close.connect('activate', self._on_project_close)
         submenu_project.append(project_close)
 
         # Close project
+        settings_edit = Gtk.MenuItem(label="Global Settings")
+        settings_edit.connect('activate', self._on_settings_edit)
+        submenu_project.append(settings_edit)
+
+
+        # Close app
         quit_app = Gtk.MenuItem(label="Quit")
         quit_app.connect('activate', self._on_app_quit)
         submenu_project.append(quit_app)
@@ -116,13 +143,22 @@ class WBS(Gtk.Window):
     def _on_project_open(self, widget):
         print("On project open")
 
+    def _on_project_close(self, widget):
+        print("On project close")
+
     def _on_project_new(self, widget):
         print("On project new")
 
+    def _on_settings_edit(self, widget):
+        print("On settings edit")
+        dialog = SettingsDialog(self)
+        response = dialog.run()
+        dialog.destroy()
 
 class Viewport(Gtk.DrawingArea):
     
     frame = None
+    do_draw = False
 
     def __init__(self, camera_index):
 
@@ -137,10 +173,15 @@ class Viewport(Gtk.DrawingArea):
         self.webcam.open('/dev/v4l/by-id/usb-046d_Logitech_BRIO_50316219-video-index0')
 
         if not self.webcam.isOpened():
-            print("Error: Could not open webcam C920.", file=sys.stderr)
-            exit()
+            print("Error: Could not open webcam.", file=sys.stderr)
+            # exit()
+        else:
+            self.do_draw = True;
 
     def on_draw(self, widget, cr):
+        if (self.do_draw == False):
+            return
+        
         self.update_frame()
         if self.frame is not None:
             # Create a GdkPixbuf from the current frame
@@ -177,3 +218,15 @@ class Viewport(Gtk.DrawingArea):
         else: 
             cv2.imwrite(f"{image_base_name}_{image_count}.png", frame)
         
+
+class SettingsDialog(Gtk.Dialog):
+    def __init__(self, parent):
+        super().__init__(title="My Dialog", transient_for=parent, flags=0)
+        self.add_buttons(
+            Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK
+        )
+        self.set_default_size(150, 100)
+        label = Gtk.Label(label="This is a dialog to display additional information")
+        box = self.get_content_area()
+        box.add(label)
+        self.show_all()

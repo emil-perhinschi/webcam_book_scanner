@@ -2,6 +2,8 @@
 
 from gui import WBS
 
+app_name = "wbsv0"
+
 WBS.run()
 
 
