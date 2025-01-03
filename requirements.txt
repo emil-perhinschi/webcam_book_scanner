@@ -44,6 +44,7 @@ skyfield==1.49
 tabulate==0.9.0
 tap.py==3.1
 tappy==1.2.0
+tapsimple @ git+https://github.com/emil-perhinschi/tapsimple@29ea25722cf1a097e35d1a446800d0813c24f5b4
 typing_extensions==4.12.2
 tzdata==2024.2
 tzlocal==5.2
