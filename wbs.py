@@ -1,6 +1,6 @@
 #!/usr/bin/env python 
 
-from gui import WBS
+from wbs.gui import WBS
 
 app_name = "wbsv0"
 
