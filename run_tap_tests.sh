@@ -1,3 +1,4 @@
 export PYTHONPATH=./:$PYTHONPATH
-prove --ext=py t/
+export HOME="/tmp"
+prove --ext=py -v t/
 

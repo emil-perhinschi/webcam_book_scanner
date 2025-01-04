@@ -1,4 +1,5 @@
-import os, sys
+import os, sys, shutil
+
 from gi.repository import GLib
 
 
@@ -31,6 +32,23 @@ def get_home_path():
 def validate_xdg_folders(app_name: str):
     return validate_xdg_data_home(app_name) and validate_xdg_cache_home(app_name) and validate_xdg_config_home(app_name)
 
+def remove_xdg_folders(app_name: str):
+    home = get_home_path()
+    data_home = os.path.join(home, '.local/share', app_name)
+    config_home = os.path.join(home, '.config', app_name)
+    cache_home = os.path.join(home, '.cache', app_name)
+    xdg_folders = [data_home, config_home, cache_home]
+    success = True
+    for f in xdg_folders:
+        if (os.path.isdir(f)):
+            shutil.rmtree(f)
+        else:
+            print("Could not find xdg folder: " + f, file=sys.stderr)
+            success = False
+
+    return success
+
+
 def validate_xdg_data_home(app_name: str):
     home = get_home_path()
     data_home = os.path.join(home, '.local/share', app_name)
@@ -40,6 +58,7 @@ def validate_xdg_data_home(app_name: str):
         print(data_home)
         os.makedirs(data_home)
 
+    return data_home
 
 def validate_xdg_config_home(app_name: str):
     home = get_home_path()
@@ -49,6 +68,8 @@ def validate_xdg_config_home(app_name: str):
         print(config_home + " not found, creating ...")
         os.makedirs(config_home)
 
+    return config_home
+
 def validate_xdg_cache_home(app_name: str):
     home = get_home_path()
     cache_home = os.path.join(home, '.cache', app_name)
@@ -56,6 +77,8 @@ def validate_xdg_cache_home(app_name: str):
     if not os.path.isdir(cache_home):
         print(cache_home + " not found, creating ...")
         os.makedirs(cache_home)
+
+    return cache_home
 
 
 
