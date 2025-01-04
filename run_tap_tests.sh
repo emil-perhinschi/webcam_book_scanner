@@ -1,3 +1,3 @@
 export PYTHONPATH=./:$PYTHONPATH
-prove tests/
+prove --ext=py t/
 
