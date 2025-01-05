@@ -29,8 +29,8 @@ def get_home_path():
 
     return home # TODO find other ways to guess the home if these two don't work
 
-def validate_xdg_folders(app_name: str):
-    return validate_xdg_data_home(app_name) and validate_xdg_cache_home(app_name) and validate_xdg_config_home(app_name)
+def xdg_folders(app_name: str):
+    return xdg_data_home(app_name) and xdg_cache_home(app_name) and xdg_config_home(app_name)
 
 def remove_xdg_folders(app_name: str):
     home = get_home_path()
@@ -49,18 +49,17 @@ def remove_xdg_folders(app_name: str):
     return success
 
 
-def validate_xdg_data_home(app_name: str):
+def xdg_data_home(app_name: str):
     home = get_home_path()
     data_home = os.path.join(home, '.local/share', app_name)
 
     if (not os.path.isdir(data_home)):
         print(data_home + " not found, creating ...")
-        print(data_home)
         os.makedirs(data_home)
 
     return data_home
 
-def validate_xdg_config_home(app_name: str):
+def xdg_config_home(app_name: str):
     home = get_home_path()
     config_home = os.path.join(home, '.config', app_name)
 
@@ -70,7 +69,7 @@ def validate_xdg_config_home(app_name: str):
 
     return config_home
 
-def validate_xdg_cache_home(app_name: str):
+def xdg_cache_home(app_name: str):
     home = get_home_path()
     cache_home = os.path.join(home, '.cache', app_name)
 
