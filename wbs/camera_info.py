@@ -10,7 +10,7 @@ def list_video_devices():
         if (can_do_video):
             result.append(device)
 
-    print(result)
+    return result
 
 def test_device_capabilities(device: str):
     result = subprocess.run(['v4l2-ctl', '-D', '--device=' + device], capture_output=True).stdout.decode('UTF-8')
@@ -21,5 +21,5 @@ def test_device_capabilities(device: str):
     else:
         return False
 
-list_video_devices()
+
 
