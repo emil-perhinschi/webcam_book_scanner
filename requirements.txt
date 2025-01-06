@@ -3,7 +3,7 @@ annotated-types==0.7.0
 astronomia==3.0.2
 certifi==2024.8.30
 cltoolbox==3.0.1
-cv2_enumerate_cameras==1.1.17
+configparser==7.1.0
 dateparser==1.2.0
 defusedxml==0.7.1
 docstring_parser==0.16

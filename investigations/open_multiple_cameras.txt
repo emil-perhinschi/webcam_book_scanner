@@ -13,3 +13,47 @@ from cv2_enumerate_cameras import enumerate_cameras
 for camera_info in enumerate_cameras():
     print(f'Iinddeexx {camera_info.index}: nnaammee {camera_info.name}')
 ```
+
+Maybe use ffmpeg instead of opencv
+
+https://askubuntu.com/questions/348838/how-to-check-available-webcams-from-the-command-line
+
+
+
+How to identify which video device to use: 
+
+This appears to be the rule
+	Device Caps      : 0x04200001
+		Video Capture
+
+
+$ ls -la /dev/video*
+crw-rw----+ 1 root video 81, 0 Jan  5 23:58 /dev/video0
+crw-rw----+ 1 root video 81, 1 Jan  5 23:58 /dev/video1
+crw-rw----+ 1 root video 81, 2 Jan  6 00:58 /dev/video2
+crw-rw----+ 1 root video 81, 3 Jan  6 00:58 /dev/video3
+$ v4l2-ctl --device=/dev/video2 -D
+Driver Info:
+	Driver name      : uvcvideo
+	Card type        : HD Pro Webcam C920
+	Bus info         : usb-0000:13:00.0-5.4.3
+	Driver version   : 6.8.12
+	Capabilities     : 0x84a00001
+		Video Capture
+		Metadata Capture
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps      : 0x04200001
+		Video Capture
+		Streaming
+		Extended Pix Format
+
+
+$ v4l2-ctl --list-formats /dev/video0
+ioctl: VIDIOC_ENUM_FMT
+	Type: Video Capture
+
+	[0]: 'YUYV' (YUYV 4:2:2)
+	[1]: 'MJPG' (Motion-JPEG, compressed)
+	[2]: 'NV12' (Y/UV 4:2:0)
