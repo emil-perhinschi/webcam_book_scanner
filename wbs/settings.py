@@ -1,14 +1,5 @@
-
-'''
-[Webcam]
-device=
-[projects folder]
-
-???
-
-'''
-
-import ConfigParser as cp
+import configparser as cp
+import sys
 
 def init_settings_file(app_name: str):
     # config = cp.
@@ -17,3 +8,18 @@ def init_settings_file(app_name: str):
 def settings_file(app_name: str):
     pass
 
+def read_settings(app_name):
+    config = cp.ConfigParser()
+
+    # config.read('/home/emilper/personal/book_scanner/wbs/tests/config.ini')
+    if (not config.read('/home/emilper/personal/book_scanner/wbs/tests/config.ini')):
+        print("Failed to read config file.", file=sys.stderr)
+        return False
+    
+    
+    for section in config.sections():
+        print("Section " + section)
+        for item in config[section]:
+            print(item + " = " + config[section][item])
+    
+    return True

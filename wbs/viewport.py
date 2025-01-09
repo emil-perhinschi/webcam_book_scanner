@@ -20,6 +20,7 @@ class Viewport(Gtk.DrawingArea):
 
         # Open the webcam
         self.webcam = cv2.VideoCapture()  # 0 is the default webcam
+        # self.webcam.open('/dev/v4l/by-id/usb-046d_HD_Pro_Webcam_C920_DC1A8EEF-video-index0')
         self.webcam.open('/dev/v4l/by-id/usb-046d_Logitech_BRIO_50316219-video-index0')
 
         if not self.webcam.isOpened():
