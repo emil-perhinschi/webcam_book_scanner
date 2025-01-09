@@ -34,6 +34,7 @@ class WBSState:
 
 
 
+# class WBS(Gtk.ApplicationWindow):
 class WBS(Gtk.Window):
     
     project_title = "DefaultTODO"
@@ -59,7 +60,7 @@ class WBS(Gtk.Window):
 
         box.pack_start(self.viewport, expand=True, fill=True, padding=6)
         
-        self.connect("destroy", self.quit_wbs)
+        self.connect("destroy", self._quit_wbs)
         self.show_all()
 
     def capture_image(self, widget):
@@ -68,7 +69,7 @@ class WBS(Gtk.Window):
         self.image_count += 1
         print("finished pretending ... ")
 
-    def quit_wbs(self, widget):
+    def _quit_wbs(self, widget):
         Gtk.main_quit()
 
     def run(): # static method
@@ -152,9 +153,9 @@ class WBS(Gtk.Window):
 
     def _on_settings_edit(self, widget):
         print("On settings edit")
-        dialog = SettingsDialog(self)
-        response = dialog.run()
-        dialog.destroy()
+        dialog = SettingsDialog()
+        # response = dialog.run()
+        # dialog.destroy()
 
       
 
