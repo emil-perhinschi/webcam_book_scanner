@@ -1,4 +1,5 @@
-import cv2, sys
+import cv2
+import sys
 import numpy as np
 
 import gi

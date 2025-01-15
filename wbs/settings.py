@@ -15,11 +15,5 @@ def read_settings(app_name):
     if (not config.read('/home/emilper/personal/book_scanner/wbs/tests/config.ini')):
         print("Failed to read config file.", file=sys.stderr)
         return False
-    
-    
-    for section in config.sections():
-        print("Section " + section)
-        for item in config[section]:
-            print(item + " = " + config[section][item])
-    
-    return True
+    else:     
+        return config

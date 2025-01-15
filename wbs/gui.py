@@ -39,10 +39,14 @@ class WBS(Gtk.Window):
     
     project_title = "DefaultTODO"
     image_count = 0
+    app_name = 'wbs'
 
     def __init__(self):
 
         super().__init__(title="Webcam Feed with GTK")
+
+
+
         # TODO start maximized
         self.set_default_size(640, 480)
         
@@ -153,7 +157,7 @@ class WBS(Gtk.Window):
 
     def _on_settings_edit(self, widget):
         print("On settings edit")
-        dialog = SettingsDialog()
+        dialog = SettingsDialog(self.app_name)
         # response = dialog.run()
         # dialog.destroy()
 

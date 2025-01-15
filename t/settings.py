@@ -3,4 +3,5 @@ from TAP.Simple import *
 
 plan(1)
 
-ok('ConfigParser' == read_settings('test'), 'config object is ConfigParser')
+config = read_settings('test')
+ok('ConfigParser' == type(config).__name__, 'config object is ConfigParser')
