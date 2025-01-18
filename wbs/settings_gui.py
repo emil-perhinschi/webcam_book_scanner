@@ -1,3 +1,4 @@
+import os
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk, GLib, GdkPixbuf
@@ -15,7 +16,7 @@ import wbs.settings
 class SettingsDialog(Gtk.Window):
     form_text_entries = {}
     app_name = ""
-
+    default_config_entries = { "WBS": {'webcam': ' ', 'projects_folder': ' '}}
 
     def __init__(self, app_name):
         Gtk.Window.__init__(self, title="Edit settings")
@@ -41,7 +42,7 @@ class SettingsDialog(Gtk.Window):
         # print(type(self.config).__name__) ConfigParser
 
         grid_row = 0
-        for section in self.config.sections():
+        for section in self.default_config_entries:
             grid.attach(Gtk.Label(""), 0, grid_row, 1, 1) # empty row
             grid_row += 1
             section_label = Gtk.Label(section)
@@ -54,7 +55,7 @@ class SettingsDialog(Gtk.Window):
             if (not section in self.form_text_entries):
                 self.form_text_entries[section] = {}
 
-            for item in self.config[section]:
+            for item in self.default_config_entries[section]:
                 # print(item + " = " + self.config[section][item])
                 item_label = Gtk.Label(item)
                 item_label.set_size_request(80, 20)
