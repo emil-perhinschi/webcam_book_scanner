@@ -32,7 +32,9 @@ class SettingsDialog(Gtk.Window):
         
         grid = Gtk.Grid()
         self.form_container.add(grid)
-
+        settings_file_path = wbs.settings.settings_file(app_name)
+        if (not os.path.isfile(settings_file_path)):
+            wbs.settings.create_blank_settings_file_template(app_name)
 
         self.config = wbs.settings.read_settings(self.app_name)
         
