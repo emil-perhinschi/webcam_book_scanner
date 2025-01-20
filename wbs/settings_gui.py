@@ -44,7 +44,7 @@ class SettingsDialog(Gtk.Window):
         grid_row = 4
         self._attach_text_entry(grid, grid_row, "WBS", "webcam")
         grid_row = 5
-        self._attach_text_entry(grid, grid_row, "WBS", "projects_folder")
+        self._attach_projects_folder_entry(grid, grid_row, "WBS", "projects_folder")
         
         button_box = Gtk.Box(spacing=6, orientation=Gtk.Orientation.HORIZONTAL)
         self.form_container.add(button_box)
@@ -80,7 +80,66 @@ class SettingsDialog(Gtk.Window):
         self.form_text_entries[section][item].set_size_request(500, 20)
         grid.attach(self.form_text_entries[section][item], 1, grid_row, 1, 1)
 
+    def _attach_projects_folder_entry(self, grid: Gtk.Grid, grid_row: int, section: str, item: str): 
+        # print(item + " = " + self.config[section][item])
+        item_label = Gtk.Label(item)
+        item_label.set_size_request(80, 20)
+        item_label.set_xalign(0.0)
+        grid.attach(item_label, 0, grid_row, 1, 1)
 
+        if (not section in self.form_text_entries):
+            self.form_text_entries[section] = {}
+
+        self.form_text_entries[section][item] = Gtk.Entry()
+        self.form_text_entries[section][item].set_text(self.config[section][item])
+        self.form_text_entries[section][item].set_size_request(500, 20)
+        grid.attach(self.form_text_entries[section][item], 1, grid_row, 1, 1)
+        
+        dialog_button = Gtk.Button("Pick folder to store projects")
+        dialog_button.connect("clicked", self._pick_projects_folder)
+        grid.attach(dialog_button, 2, grid_row, 1, 1)
+
+    def _pick_projects_folder(self, button):
+        print(">>>>>>>>>>>>>>>>>>>> Pick projects folder")
+        dialog = Gtk.FileChooserDialog(
+            title="Please choose a folder", 
+            # parent=self, 
+            action=Gtk.FileChooserAction.SELECT_FOLDER
+        )
+
+        dialog.add_buttons(
+            Gtk.STOCK_CANCEL,
+            Gtk.ResponseType.CANCEL,
+            Gtk.STOCK_OPEN,
+            Gtk.ResponseType.OK,
+        )
+
+        # self.add_projects_folder_filters(dialog)
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            print("Open clicked")
+            print("File selected: " + dialog.get_filename())
+            self.form_text_entries["WBS"]["projects_folder"].set_text(dialog.get_filename())
+        elif response == Gtk.ResponseType.CANCEL:
+            print("Cancel clicked")
+
+        dialog.destroy()
+    # def add_projects_folder_filters(self, dialog):
+
+    #     filter_text = Gtk.FileFilter()
+    #     filter_text.set_name("Text files")
+    #     filter_text.add_mime_type("text/plain")
+    #     dialog.add_filter(filter_text)
+
+    #     filter_py = Gtk.FileFilter()
+    #     filter_py.set_name("Python files")
+    #     filter_py.add_mime_type("text/x-python")
+    #     dialog.add_filter(filter_py)
+
+    #     filter_any = Gtk.FileFilter()
+    #     filter_any.set_name("Any files")
+    #     filter_any.add_pattern("*")
+    #     dialog.add_filter(filter_any)
 
     def _save_settings(self, button):
 
