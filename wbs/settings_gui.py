@@ -16,7 +16,6 @@ import wbs.settings
 class SettingsDialog(Gtk.Window):
     form_text_entries = {}
     app_name = ""
-    default_config_entries = { "WBS": {'webcam': ' ', 'projects_folder': ' '}}
 
     def __init__(self, app_name):
         Gtk.Window.__init__(self, title="Edit settings")
@@ -39,34 +38,13 @@ class SettingsDialog(Gtk.Window):
 
         self.config = wbs.settings.read_settings(self.app_name)
         
-        # print(type(self.config).__name__) ConfigParser
-
+        # FORM
         grid_row = 0
-        for section in self.default_config_entries:
-            grid.attach(Gtk.Label(""), 0, grid_row, 1, 1) # empty row
-            grid_row += 1
-            section_label = Gtk.Label(section)
-            section_label.set_xalign(0.0)
-            grid.attach(section_label, 0, grid_row, 2, 1) # section label row
-            grid_row += 1
-            grid.attach(Gtk.Label(""), 0, grid_row, 1, 1) # empty row
-            grid_row += 1
-            print("Section " + section)
-            if (not section in self.form_text_entries):
-                self.form_text_entries[section] = {}
-
-            for item in self.default_config_entries[section]:
-                # print(item + " = " + self.config[section][item])
-                item_label = Gtk.Label(item)
-                item_label.set_size_request(80, 20)
-                item_label.set_xalign(0.0)
-                grid.attach(item_label, 0, grid_row, 1, 1)
-
-                self.form_text_entries[section][item] = Gtk.Entry()
-                self.form_text_entries[section][item].set_text(self.config[section][item])
-                self.form_text_entries[section][item].set_size_request(500, 20)
-                grid.attach(self.form_text_entries[section][item], 1, grid_row, 1, 1)
-                grid_row += 1
+        self._attach_section_label(grid, grid_row, "WBS")
+        grid_row = 4
+        self._attach_text_entry(grid, grid_row, "WBS", "webcam")
+        grid_row = 5
+        self._attach_text_entry(grid, grid_row, "WBS", "projects_folder")
         
         button_box = Gtk.Box(spacing=6, orientation=Gtk.Orientation.HORIZONTAL)
         self.form_container.add(button_box)
@@ -75,6 +53,34 @@ class SettingsDialog(Gtk.Window):
         save_button.connect("clicked", self._save_settings)
         button_box.add(save_button)
         self.show_all()
+
+    def _attach_section_label(self, grid: Gtk.Grid, grid_row: int, section: str):
+        grid.attach(Gtk.Label(""), 0, grid_row, 1, 1) # empty row
+        grid_row += 1
+        section_label = Gtk.Label(section)
+        section_label.set_xalign(0.0)
+        grid.attach(section_label, 0, grid_row, 2, 1) # section label row
+        grid_row += 1
+        grid.attach(Gtk.Label(""), 0, grid_row, 1, 1) # empty row
+        grid_row += 1
+
+
+    def _attach_text_entry(self, grid: Gtk.Grid, grid_row: int, section: str, item: str): 
+        # print(item + " = " + self.config[section][item])
+        item_label = Gtk.Label(item)
+        item_label.set_size_request(80, 20)
+        item_label.set_xalign(0.0)
+        grid.attach(item_label, 0, grid_row, 1, 1)
+
+        if (not section in self.form_text_entries):
+            self.form_text_entries[section] = {}
+
+        self.form_text_entries[section][item] = Gtk.Entry()
+        self.form_text_entries[section][item].set_text(self.config[section][item])
+        self.form_text_entries[section][item].set_size_request(500, 20)
+        grid.attach(self.form_text_entries[section][item], 1, grid_row, 1, 1)
+
+
 
     def _save_settings(self, button):
 
