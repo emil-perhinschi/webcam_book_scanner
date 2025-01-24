@@ -42,7 +42,7 @@ class SettingsDialog(Gtk.Window):
         grid_row = 0
         self._attach_section_label(grid, grid_row, "WBS")
         grid_row = 4
-        self._attach_text_entry(grid, grid_row, "WBS", "webcam")
+        self._attach_webcam_device_entry(grid, grid_row, "WBS", "webcam")
         grid_row = 5
         self._attach_projects_folder_entry(grid, grid_row, "WBS", "projects_folder")
         
@@ -80,6 +80,38 @@ class SettingsDialog(Gtk.Window):
         self.form_text_entries[section][item].set_size_request(500, 20)
         grid.attach(self.form_text_entries[section][item], 1, grid_row, 1, 1)
 
+    def _attach_webcam_device_entry(self, grid: Gtk.Grid, grid_row: int, section: str, item: str): 
+        # print(item + " = " + self.config[section][item])
+        item_label = Gtk.Label(item)
+        item_label.set_size_request(80, 20)
+        item_label.set_xalign(0.0)
+        grid.attach(item_label, 0, grid_row, 1, 1)
+
+        if (not section in self.form_text_entries):
+            self.form_text_entries[section] = {}
+
+        self.form_text_entries[section][item] = Gtk.Entry()
+        self.form_text_entries[section][item].set_text(self.config[section][item])
+        self.form_text_entries[section][item].set_size_request(500, 20)
+        grid.attach(self.form_text_entries[section][item], 1, grid_row, 1, 1)
+        
+
+        devices_combo = self._webcam_device_combo()
+        grid.attach(devices_combo, 2, grid_row, 1, 1)
+
+
+    def _webcam_device_combo(self):
+        devices_store = Gtk.ListStore(str, str)
+        devices_store.append(["/dev/video0 xx", "/dev/video0"])
+        devices_store.append(["/dev/video1 xx", "/dev/video1"])
+        devices_store.append(["/dev/video2 xx", "/dev/video2"])
+
+        devices_combo = Gtk.ComboBox.new_with_model_and_entry(devices_store)
+        # devices_combo.connect("changed", self.on_name_combo_changed)
+        devices_combo.set_active(0) # this is the index of the default value, else there will no value be shown by default
+        devices_combo.set_entry_text_column(0) # that is not the default entry to show, but which column to use to get the string displayedk, I think
+        return devices_combo
+
     def _attach_projects_folder_entry(self, grid: Gtk.Grid, grid_row: int, section: str, item: str): 
         # print(item + " = " + self.config[section][item])
         item_label = Gtk.Label(item)
@@ -95,18 +127,17 @@ class SettingsDialog(Gtk.Window):
         self.form_text_entries[section][item].set_size_request(500, 20)
         grid.attach(self.form_text_entries[section][item], 1, grid_row, 1, 1)
         
-        dialog_button = Gtk.Button("Pick folder to store projects")
+        dialog_button = Gtk.Button("Choose folder")
         dialog_button.connect("clicked", self._pick_projects_folder)
         grid.attach(dialog_button, 2, grid_row, 1, 1)
 
     def _pick_projects_folder(self, button):
-        print(">>>>>>>>>>>>>>>>>>>> Pick projects folder")
         dialog = Gtk.FileChooserDialog(
             title="Please choose a folder", 
-            # parent=self, 
+            parent=self, 
             action=Gtk.FileChooserAction.SELECT_FOLDER
         )
-
+        dialog.set_current_folder(GLib.get_home_dir())
         dialog.add_buttons(
             Gtk.STOCK_CANCEL,
             Gtk.ResponseType.CANCEL,

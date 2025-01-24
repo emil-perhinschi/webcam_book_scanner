@@ -5,7 +5,7 @@ import subprocess
 
 def list_video_devices():
     result = []
-    for device in glob.glob('/dev/video*'):
+    for device in glob.glob('/dev/v4l/by-id/usb*'):
         can_do_video = test_device_capabilities(device)
         if (can_do_video):
             result.append(device)
@@ -23,3 +23,4 @@ def test_device_capabilities(device: str):
 
 
 
+# print(list_video_devices())
