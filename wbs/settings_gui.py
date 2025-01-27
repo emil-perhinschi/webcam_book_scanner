@@ -81,7 +81,6 @@ class SettingsDialog(Gtk.Window):
         grid.attach(self.form_text_entries[section][item], 1, grid_row, 1, 1)
 
     def _attach_webcam_device_entry(self, grid: Gtk.Grid, grid_row: int, section: str, item: str): 
-        # print(item + " = " + self.config[section][item])
         item_label = Gtk.Label(item)
         item_label.set_size_request(80, 20)
         item_label.set_xalign(0.0)
@@ -93,27 +92,11 @@ class SettingsDialog(Gtk.Window):
         self.form_text_entries[section][item] = Gtk.Entry()
         self.form_text_entries[section][item].set_text(self.config[section][item])
         self.form_text_entries[section][item].set_size_request(500, 20)
+
         grid.attach(self.form_text_entries[section][item], 1, grid_row, 1, 1)
-        
 
-        devices_combo = self._webcam_device_combo()
-        grid.attach(devices_combo, 2, grid_row, 1, 1)
-
-
-    def _webcam_device_combo(self):
-        devices_store = Gtk.ListStore(str, str)
-        devices_store.append(["/dev/video0 xx", "/dev/video0"])
-        devices_store.append(["/dev/video1 xx", "/dev/video1"])
-        devices_store.append(["/dev/video2 xx", "/dev/video2"])
-
-        devices_combo = Gtk.ComboBox.new_with_model_and_entry(devices_store)
-        # devices_combo.connect("changed", self.on_name_combo_changed)
-        devices_combo.set_active(0) # this is the index of the default value, else there will no value be shown by default
-        devices_combo.set_entry_text_column(0) # that is not the default entry to show, but which column to use to get the string displayedk, I think
-        return devices_combo
 
     def _attach_projects_folder_entry(self, grid: Gtk.Grid, grid_row: int, section: str, item: str): 
-        # print(item + " = " + self.config[section][item])
         item_label = Gtk.Label(item)
         item_label.set_size_request(80, 20)
         item_label.set_xalign(0.0)
@@ -155,22 +138,6 @@ class SettingsDialog(Gtk.Window):
             print("Cancel clicked")
 
         dialog.destroy()
-    # def add_projects_folder_filters(self, dialog):
-
-    #     filter_text = Gtk.FileFilter()
-    #     filter_text.set_name("Text files")
-    #     filter_text.add_mime_type("text/plain")
-    #     dialog.add_filter(filter_text)
-
-    #     filter_py = Gtk.FileFilter()
-    #     filter_py.set_name("Python files")
-    #     filter_py.add_mime_type("text/x-python")
-    #     dialog.add_filter(filter_py)
-
-    #     filter_any = Gtk.FileFilter()
-    #     filter_any.set_name("Any files")
-    #     filter_any.add_pattern("*")
-    #     dialog.add_filter(filter_any)
 
     def _save_settings(self, button):
 
