@@ -153,6 +153,7 @@ class WBS(Gtk.Window):
         print("On project close")
 
     def _on_project_new(self, widget):
+        dialog = ProjectDialog(self.app_name)
         print("On project new")
 
     def _on_settings_edit(self, widget):
