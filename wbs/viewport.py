@@ -11,10 +11,12 @@ class Viewport(Gtk.DrawingArea):
     frame = None
     do_draw = False
 
-    def __init__(self, camera_index):
-
+    def __init__(self):
         super().__init__()
 
+
+
+    def connect_to_camera(self, camera_device):
         self.connect("draw", self.on_draw)
         # TODO change tick frequency
         self.add_tick_callback(self.on_draw)
@@ -22,13 +24,13 @@ class Viewport(Gtk.DrawingArea):
         # Open the webcam
         self.webcam = cv2.VideoCapture()  # 0 is the default webcam
         # self.webcam.open('/dev/v4l/by-id/usb-046d_HD_Pro_Webcam_C920_DC1A8EEF-video-index0')
-        self.webcam.open('/dev/v4l/by-id/usb-046d_Logitech_BRIO_50316219-video-index0')
+        camera_device = '/dev/v4l/by-id/usb-046d_Logitech_BRIO_50316219-video-index0'
+        self.webcam.open(camera_device)
 
         if not self.webcam.isOpened():
             print("Error: Could not open webcam.", file=sys.stderr)
-            # exit()
         else:
-            self.do_draw = True;
+            self.do_draw = True
 
     def on_draw(self, widget, cr):
         if (self.do_draw == False):

@@ -7,6 +7,8 @@ from gi.repository import Gtk, Gdk, GLib, GdkPixbuf
 
 from wbs.viewport import *
 from wbs.settings_gui import *
+from wbs.project_gui import *
+
 
 class WBSProject:
     def __init__(self, name, folder, date_created, date_changed):
@@ -38,15 +40,17 @@ class WBSState:
 class WBS(Gtk.Window):
     
     project_title = "DefaultTODO"
+    proejct_path = ""
     image_count = 0
     app_name = 'wbs'
 
     def __init__(self):
 
-        super().__init__(title="Webcam Feed with GTK")
+        super().__init__(title="WBS")
 
 
-
+        self.viewport = Viewport()
+        
         # TODO start maximized
         self.set_default_size(640, 480)
         
@@ -55,16 +59,17 @@ class WBS(Gtk.Window):
 
         menu_bar = self.__build_main_menu()
         box.pack_start(menu_bar, expand = False, fill = False, padding = 1)
-        
-        button = Gtk.Button(label="Capture image")
-        button.connect("clicked", self.capture_image)
+
+        button = Gtk.Button(label="Open camera")
+        button.connect("clicked", self.viewport.connect_to_camera)
         box.pack_start(button, expand=False, fill=False, padding=1)
 
-        self.viewport = Viewport('/dev/video3')
+
 
         box.pack_start(self.viewport, expand=True, fill=True, padding=6)
         
         self.connect("destroy", self._quit_wbs)
+        self.maximize()
         self.show_all()
 
     def capture_image(self, widget):
@@ -153,8 +158,28 @@ class WBS(Gtk.Window):
         print("On project close")
 
     def _on_project_new(self, widget):
-        dialog = ProjectDialog(self.app_name)
-        print("On project new")
+
+        dialog = Gtk.FileChooserDialog(
+            title="Please choose a project folder", 
+            parent=self, 
+            action=Gtk.FileChooserAction.SELECT_FOLDER
+        )
+        dialog.set_current_folder(GLib.get_home_dir())
+        dialog.add_buttons(
+            Gtk.STOCK_CANCEL,
+            Gtk.ResponseType.CANCEL,
+            Gtk.STOCK_OPEN,
+            Gtk.ResponseType.OK,
+        )
+
+        # self.add_projects_folder_filters(dialog)
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            self.project_path = dialog.get_filename()
+            new_app_title = "WBS: " + self.project_path
+            self.set_title(new_app_title)
+        dialog.destroy()
+
 
     def _on_settings_edit(self, widget):
         print("On settings edit")

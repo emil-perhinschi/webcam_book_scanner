@@ -18,6 +18,8 @@ class GenericDialog(Gtk.Window):
 
         self.set_default_size(600,400)
         self.connect("destroy-event", self._quit_settings_dialog)
+        
+        self.config = self.load_config_data()
 
         self.form_container = Gtk.Box(spacing=6, orientation=Gtk.Orientation.VERTICAL)
         self.form_container.set_margin_top(20)
@@ -30,8 +32,6 @@ class GenericDialog(Gtk.Window):
         if (not os.path.isfile(settings_file_path)):
             wbs.settings.create_blank_settings_file_template(app_name)
 
-        self.config = wbs.settings.read_settings(self.app_name)
-        
         self.attach_form(grid)
 
         button_box = Gtk.Box(spacing=6, orientation=Gtk.Orientation.HORIZONTAL)
@@ -41,6 +41,10 @@ class GenericDialog(Gtk.Window):
         save_button.connect("clicked", self._save_form)
         button_box.add(save_button)
         self.show_all()
+
+    def load_config_data(self):
+        raise Exception("override me")
+
 
     def attach_form(self, grid): 
         raise Exception("override me")

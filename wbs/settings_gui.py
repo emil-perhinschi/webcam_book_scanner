@@ -24,4 +24,7 @@ class SettingsDialog(GenericDialog):
         
 
     def _save_form_data_to_file(self, form_data):
-        wbs.settings.save_settings(self.app_name, form_data)
+        return wbs.settings.save_settings(self.app_name, form_data)
+
+    def load_config_data(self):
+        return wbs.settings.read_settings(self.app_name)
