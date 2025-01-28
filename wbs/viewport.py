@@ -55,8 +55,10 @@ class Viewport(Gtk.DrawingArea):
                 self.frame.shape[2] * self.frame.shape[1],
             )
             # Draw the image on the drawing area
-            Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
-            cr.paint()
+            if (type(cr).__name__ == 'Context' ):
+                Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
+                cr.paint()
+
         else: 
             print("video frame is None")
 
