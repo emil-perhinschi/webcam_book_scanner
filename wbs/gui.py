@@ -8,7 +8,7 @@ from gi.repository import Gtk, Gdk, GLib, GdkPixbuf
 from wbs.viewport import *
 from wbs.settings_gui import *
 from wbs.project_gui import *
-
+import wbs.camera_info
 
 class WBSProject:
     def __init__(self, name, folder, date_created, date_changed):
@@ -54,23 +54,52 @@ class WBS(Gtk.Window):
         # TODO start maximized
         self.set_default_size(640, 480)
         
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing = 2)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing = 6)
         self.add(box)
 
         menu_bar = self.__build_main_menu()
         box.pack_start(menu_bar, expand = False, fill = False, padding = 1)
 
-        button = Gtk.Button(label="Open camera")
-        button.connect("clicked", self.viewport.connect_to_camera)
-        box.pack_start(button, expand=False, fill=False, padding=1)
+        camera_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing = 6)
+        
+        camera_list = wbs.camera_info.list_video_devices()
+        self.camera_combo = Gtk.ComboBoxText()
+        device_counter = 0
+        for device in camera_list:
+            self.camera_combo.insert(device_counter, str(device_counter), device)
 
+        self.camera_combo.set_active(0)
 
+        camera_box.add(self.camera_combo)
+        button_open = Gtk.Button(label="Open camera")
+        button_open.connect("clicked", self.connect_to_camera)
+        camera_box.add(button_open) # , expand=False, fill=False, padding=1)
+
+        button_close = Gtk.Button(label="Close camera")
+        button_close.connect("clicked", self.close_camera)
+        camera_box.add(button_close) # , expand=False, fill=False, padding=1)
+
+        button_refresh = Gtk.Button(label="Refresh camera list")
+        button_refresh.connect("clicked", self.refresh_camera_list)
+        camera_box.add(button_refresh) # , expand=False, fill=False, padding=1)
+
+        box.pack_start(camera_box, expand=False, fill=False, padding=6)
 
         box.pack_start(self.viewport, expand=True, fill=True, padding=6)
         
         self.connect("destroy", self._quit_wbs)
         self.maximize()
         self.show_all()
+
+    def close_camera(self, button):
+        self.viewport.close_camera()
+
+    def connect_to_camera(self, button):
+        camera_device = self.camera_combo.get_active_text()
+        self.viewport.connect_to_camera(camera_device)
+
+    def refresh_camera_list():
+        raise Exception("fill me up")
 
     def capture_image(self, widget):
         print("prenteding to capture image ... ")

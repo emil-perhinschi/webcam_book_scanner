@@ -15,6 +15,10 @@ class Viewport(Gtk.DrawingArea):
         super().__init__()
 
 
+    def close_camera(self):
+        if self.webcam.isOpened():
+            self.webcam.release()
+            self.do_draw = False
 
     def connect_to_camera(self, camera_device):
         self.connect("draw", self.on_draw)
@@ -24,13 +28,15 @@ class Viewport(Gtk.DrawingArea):
         # Open the webcam
         self.webcam = cv2.VideoCapture()  # 0 is the default webcam
         # self.webcam.open('/dev/v4l/by-id/usb-046d_HD_Pro_Webcam_C920_DC1A8EEF-video-index0')
-        camera_device = '/dev/v4l/by-id/usb-046d_Logitech_BRIO_50316219-video-index0'
+        # camera_device = '/dev/v4l/by-id/usb-046d_Logitech_BRIO_50316219-video-index0'
         self.webcam.open(camera_device)
 
         if not self.webcam.isOpened():
             print("Error: Could not open webcam.", file=sys.stderr)
+            self.do_draw = False
         else:
             self.do_draw = True
+
 
     def on_draw(self, widget, cr):
         if (self.do_draw == False):
