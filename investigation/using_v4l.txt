@@ -1,4 +1,4 @@
 https://gist.github.com/metal3d/d6e295bef424ad18f801bf7f026f0019
 
-https://github.com/korandiz/v4l/blob/master/demos/viewcam/viewcam.go
+https://github.com/korandiz/v4l/blob/master/demos/viewcam/viewcam.go using Gtk
 
