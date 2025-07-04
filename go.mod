@@ -2,13 +2,16 @@ module WBS
 
 go 1.24.0
 
-require fyne.io/fyne/v2 v2.6.1
+require (
+	fyne.io/fyne/v2 v2.6.1
+	github.com/emil-perhinschi/tap-go v0.0.0-20171203230836-629fa407e90b
+	gocv.io/x/gocv v0.41.0
+)
 
 require (
 	fyne.io/systray v1.11.0 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/emil-perhinschi/tap-go v0.0.0-20171203230836-629fa407e90b // indirect
 	github.com/fredbi/uri v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fyne-io/gl-js v0.1.0 // indirect
@@ -33,7 +36,6 @@ require (
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
 	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/yuin/goldmark v1.7.8 // indirect
-	gocv.io/x/gocv v0.41.0 // indirect
 	golang.org/x/image v0.24.0 // indirect
 	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
