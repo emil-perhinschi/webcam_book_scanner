@@ -16,22 +16,31 @@ func main() {
 
 	win := app.makeMainWindow("Webcam book scanner")
 
-	vbox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-	app.panicIfErr(err, "Unable to create main container box:")
-	win.Add(vbox)
+	mainContainer, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	app.panicIfErr(err, "Unable to create main container:")
+	win.Add(mainContainer)
 
 	menubar := app.makeMenuBar()
-	vbox.PackStart(menubar, false, false, 0)
+	mainContainer.PackStart(menubar, false, false, 0)
+
+	devicesContainer, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+	app.panicIfErr(err, "Unable to create the devices container:")
+
+	refreshDevicesButton, err := gtk.ButtonNewWithLabel("Refresh devices")
+	app.panicIfErr(err, "Unable to create the refresh button:")
 
 	combo, err := app.makeDevicesComboBox()
 	app.panicIfErr(err, "failed to make devices combo: ")
-	vbox.PackStart(combo, false, false, 5)
+	devicesContainer.PackStart(combo, true, true, 1)
+	devicesContainer.PackEnd(refreshDevicesButton, false, true, 0)
+
+	mainContainer.PackStart(devicesContainer, false, true, 0)
 
 	// Create a drawing area
 	app.viewport, err = gtk.DrawingAreaNew()
 	app.panicIfErr(err, "Unable to create drawing area:")
 	app.viewport.SetSizeRequest(400, 200)
-	vbox.PackStart(app.viewport, true, true, 0)
+	mainContainer.PackStart(app.viewport, true, true, 0)
 
 	// Connect the draw signal to draw on the drawing area
 	app.viewport.Connect("draw", func(da *gtk.DrawingArea, cr *cairo.Context) {
@@ -45,7 +54,7 @@ func main() {
 
 	app.logArea, err = gtk.LabelNew("Will add messages here")
 	app.panicIfErr(err, "failed to initialize log area")
-	vbox.PackStart(app.logArea, true, true, 0)
+	mainContainer.PackStart(app.logArea, false, false, 0)
 
 	// Show all widgets
 	win.ShowAll()

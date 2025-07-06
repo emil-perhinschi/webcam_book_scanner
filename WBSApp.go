@@ -33,7 +33,8 @@ func (app *WBSApp) makeMainWindow(title string) *gtk.Window {
 	app.panicIfErr(err, "Unable to create window:")
 
 	win.SetTitle(title)
-	win.SetDefaultSize(400, 300)
+	// win.SetDefaultSize(1024, 768)
+	win.Maximize()
 	win.Connect("destroy", gtk.MainQuit)
 
 	return win
