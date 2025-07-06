@@ -1,11 +1,11 @@
 package main
 
 import (
-	"WBS/internal/opencv"
+	"WBS/internal/device"
 	"errors"
-	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/gotk3/gotk3/cairo"
 	"github.com/gotk3/gotk3/gdk"
@@ -96,7 +96,7 @@ func (app *WBSApp) makeDevicesComboBox() (*gtk.ComboBox, error) {
 	defaultStoreItem := store.Append()
 	store.SetValue(defaultStoreItem, 0, defaultStoreItemValue)
 
-	items, err := opencv.ListDevices()
+	items, err := device.ListDevices()
 	if err != nil {
 		errorString := err.Error()
 		if !strings.Contains(errorString, "ls: cannot access '/dev/v4l/by-id/usb*'") {
@@ -148,64 +148,37 @@ func (app *WBSApp) displayVideoInViewport(device_path string) {
 	})
 
 	go func() {
-		webcam, err := gocv.VideoCaptureDevice(0) //TODO get the device id from string
+		var err error
+		app.webcam, err = gocv.VideoCaptureDevice(0) //TODO get the device id from string
 		app.panicIfErr(err, "Could not open video device 0")
-		defer webcam.Close()
+		defer app.webcam.Close()
 
 		frame := gocv.NewMat()
 		defer frame.Close()
 
 		for {
-			ok := webcam.Read(&frame)
+			// fmt.Println("Reading another frame")
+			ok := app.webcam.Read(&frame)
 			if !ok {
 				log.Println("Cannot read from webcam")
 			}
+
 			if frame.Empty() {
 				log.Println("Frame is empty")
 				continue
 			}
 
-			pixbuf, err := matToPixbuf(frame)
+			pixbuf, err := device.MatToPixbuf(frame)
 			if err != nil {
 				log.Println("Failed to convert video frame to pixbuf: ", err)
 				continue
 			}
 			app.currentPixbuf = pixbuf
 			app.viewport.QueueDraw()
-			gocv.WaitKey(10)
+			time.Sleep(100 * time.Millisecond)
 		}
 	}()
 
-}
-
-func matToPixbuf(mat gocv.Mat) (*gdk.Pixbuf, error) {
-	// Convert Mat to bytes (assuming RGB image)
-	data, err := gocv.IMEncode(".png", mat)
-	if err != nil {
-		return nil, fmt.Errorf("failed to encode Mat to PNG: %v", err)
-	}
-	defer data.Close()
-
-	// Create a PixbufLoader to load the image data
-	loader, err := gdk.PixbufLoaderNew()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create PixbufLoader: %v", err)
-	}
-	defer loader.Close()
-
-	// Write the image data to the loader
-	_, err = loader.Write(data.GetBytes())
-	if err != nil {
-		return nil, fmt.Errorf("failed to write to PixbufLoader: %v", err)
-	}
-
-	// Get the Pixbuf from the loader
-	pixbuf, err := loader.GetPixbuf()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get Pixbuf: %v", err)
-	}
-
-	return pixbuf, nil
 }
 
 func (app *WBSApp) makeMenuBar() *gtk.MenuBar {

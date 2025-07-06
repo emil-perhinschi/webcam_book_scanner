@@ -1,4 +1,4 @@
-package opencv
+package device
 
 import (
 	"bytes"
@@ -7,6 +7,9 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+
+	"github.com/gotk3/gotk3/gdk"
+	"gocv.io/x/gocv"
 )
 
 func ListDevices() ([]string, error) {
@@ -71,4 +74,34 @@ func listFilesByPattern(pattern string) ([]string, error) {
 	}
 
 	return result, nil
+}
+
+func MatToPixbuf(mat gocv.Mat) (*gdk.Pixbuf, error) {
+	// Convert Mat to bytes (assuming RGB image)
+	data, err := gocv.IMEncode(".png", mat)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode Mat to PNG: %v", err)
+	}
+	defer data.Close()
+
+	// Create a PixbufLoader to load the image data
+	loader, err := gdk.PixbufLoaderNew()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create PixbufLoader: %v", err)
+	}
+	defer loader.Close()
+
+	// Write the image data to the loader
+	_, err = loader.Write(data.GetBytes())
+	if err != nil {
+		return nil, fmt.Errorf("failed to write to PixbufLoader: %v", err)
+	}
+
+	// Get the Pixbuf from the loader
+	pixbuf, err := loader.GetPixbuf()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get Pixbuf: %v", err)
+	}
+
+	return pixbuf, nil
 }
