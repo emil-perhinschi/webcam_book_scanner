@@ -42,7 +42,7 @@ func ListDevices() ([]string, error) {
 		match := r.MatchString(out.String())
 		fmt.Println("MATCH: ", match)
 		if match {
-			// fmt.Println("OUTPUT: ", out.String())
+			fmt.Println("OUTPUT: ", out.String())
 			result = append(result, device)
 		}
 	}

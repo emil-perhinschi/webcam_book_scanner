@@ -24,7 +24,9 @@ func (webcam *WebcamDevice) Open() {
 		fmt.Println("ERROR OPENING VIDEO CAPTGURE DEVICE:", err)
 		return
 	}
-
+	webcam.captureDevice.Set(gocv.VideoCaptureAutoFocus, 1)
+	webcam.captureDevice.Set(gocv.VideoCaptureFrameWidth, 1920)
+	webcam.captureDevice.Set(gocv.VideoCaptureFrameHeight, 1080)
 	webcam.isOpen = true
 }
 
@@ -43,14 +45,10 @@ func (webcam *WebcamDevice) Close() {
 	webcam.isOpen = false
 }
 
-func (webcam *WebcamDevice) IsOpened() bool {
-	if webcam.captureDevice == nil {
-		return false
-	}
-	fmt.Println(";;;; checking if camera is opened ;;;;", webcam)
-	webcam.mtx.Lock()
-	defer webcam.mtx.Unlock()
-	isOpened := webcam.isOpen
-	fmt.Println(";;;; DONE checking if camera is opened ;;;;", webcam)
-	return isOpened
-}
+// func (webcam *WebcamDevice) IsOpened() bool {
+// 	if webcam.captureDevice == nil {
+// 		return false
+// 	}
+// 	isOpened := webcam.isOpen
+// 	return isOpened
+// }

@@ -108,13 +108,12 @@ func (app *WBSApp) displayVideoInViewport(device_path string) {
 			cr.Paint()
 		}
 	})
+	app.OpenWebcamDevice()
+
+	frame := gocv.NewMat()
 
 	go func() {
-
-		app.OpenWebcamDevice()
 		defer app.webcam.Close()
-
-		frame := gocv.NewMat()
 		defer frame.Close()
 
 		for {
@@ -123,10 +122,10 @@ func (app *WBSApp) displayVideoInViewport(device_path string) {
 				return
 			}
 
-			if app.webcam == nil || !app.webcam.IsOpened() {
-				time.Sleep(1 * time.Second)
-				break
-			}
+			// if app.webcam == nil || !app.webcam.isOpen {
+			// 	time.Sleep(1 * time.Second)
+			// 	break
+			// }
 
 			ok := app.webcam.captureDevice.Read(&frame)
 			if !ok {
@@ -146,7 +145,7 @@ func (app *WBSApp) displayVideoInViewport(device_path string) {
 			}
 			app.currentPixbuf = pixbuf
 			app.viewport.QueueDraw()
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(30 * time.Millisecond)
 		}
 	}()
 
