@@ -21,6 +21,29 @@ type WBSApp struct {
 	currentPixbuf      *gdk.Pixbuf
 	webcam             *WebcamDevice
 	captureImageButton *gtk.Button
+	cameraShouldBeOpen bool
+}
+
+func (app *WBSApp) makeViewport() {
+	var err error
+	app.viewport, err = gtk.DrawingAreaNew()
+	app.panicIfErr(err, "Unable to create drawing area:")
+	app.viewport.SetSizeRequest(400, 200)
+	// Connect the draw signal to draw on the drawing area
+
+	app.viewport.Connect("draw", func(da *gtk.DrawingArea, cr *cairo.Context) {
+		if !app.cameraShouldBeOpen {
+			return
+		}
+		app.OpenWebcamDevice()
+		frame := gocv.NewMat() // avoid instantiating the frame object repeatedly
+		app.captureFrameFromDevice(&frame)
+		if app.currentPixbuf != nil {
+			gtk.GdkCairoSetSourcePixBuf(cr, app.currentPixbuf, 0, 0)
+			cr.Paint()
+		}
+		app.viewport.QueueDraw() // queue the next call of draw and reading of the frame
+	})
 }
 
 func (app *WBSApp) makeMainWindow(title string) *gtk.Window {
@@ -81,10 +104,12 @@ func (app *WBSApp) makeDevicesComboBox() (*gtk.ComboBox, error) {
 		str, err := value.GetString()
 		app.panicIfErr(err, "Error converting to string")
 		if str == defaultStoreItemValue {
+			app.cameraShouldBeOpen = false
 			app.closeCamera()
 		} else {
 			// log.Println("Selected:", str)
 			app.logArea.SetText("Selected device " + str)
+			app.cameraShouldBeOpen = true
 			app.displayVideoInViewport(str)
 		}
 	})
@@ -93,11 +118,12 @@ func (app *WBSApp) makeDevicesComboBox() (*gtk.ComboBox, error) {
 }
 
 func (app *WBSApp) OpenWebcamDevice() {
-	var err error
+	// var err error // why do I need this ?
 	app.webcam.Open()
-	app.panicIfErr(err, "Could not open video device 0")
+	// app.panicIfErr(err, "Could not open video device 0")
 	app.webcam.isOpen = true
 	app.captureImageButton.SetSensitive(true)
+
 }
 
 func (app *WBSApp) closeCamera() {
@@ -113,7 +139,7 @@ func (app *WBSApp) captureFrameFromDevice(frame *gocv.Mat) {
 
 	if app.webcam == nil || !app.webcam.isOpen {
 		fmt.Println("webcam is nil or not open")
-		time.Sleep(1 * time.Second)
+		// time.Sleep(1 * time.Second)
 		return
 	}
 
@@ -140,19 +166,11 @@ func (app *WBSApp) captureFrameFromDevice(frame *gocv.Mat) {
 }
 
 func (app *WBSApp) displayVideoInViewport(device_path string) {
+	if !app.cameraShouldBeOpen {
+		return
+	}
 
-	frame := gocv.NewMat() // avoid instantiating the frame object repeatedly
-
-	app.viewport.Connect("draw", func(da *gtk.DrawingArea, cr *cairo.Context) {
-		app.OpenWebcamDevice()
-		app.captureFrameFromDevice(&frame)
-		if app.currentPixbuf != nil {
-			gtk.GdkCairoSetSourcePixBuf(cr, app.currentPixbuf, 0, 0)
-			cr.Paint()
-		}
-		app.viewport.QueueDraw() // queue the next call of draw and reading of the frame
-	})
-
+	app.viewport.QueueDraw()
 }
 
 func (app *WBSApp) makeMenuBar() *gtk.MenuBar {

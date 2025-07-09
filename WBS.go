@@ -3,7 +3,6 @@ package main
 import (
 	"runtime"
 
-	"github.com/gotk3/gotk3/cairo"
 	"github.com/gotk3/gotk3/gtk"
 )
 
@@ -40,22 +39,11 @@ func main() {
 	devicesContainer.PackStart(combo, true, true, 1)
 	devicesContainer.PackEnd(refreshDevicesButton, false, true, 0)
 	devicesContainer.PackEnd(app.captureImageButton, false, true, 0)
-
 	mainContainer.PackStart(devicesContainer, false, true, 0)
 
 	// Create a drawing area
-	app.viewport, err = gtk.DrawingAreaNew()
-	app.panicIfErr(err, "Unable to create drawing area:")
-	app.viewport.SetSizeRequest(400, 200)
+	app.makeViewport()
 	mainContainer.PackStart(app.viewport, true, true, 0)
-
-	// Connect the draw signal to draw on the drawing area
-	app.viewport.Connect("draw", func(da *gtk.DrawingArea, cr *cairo.Context) {
-		// Simple drawing: fill with light gray
-		cr.SetSourceRGB(0.8, 0.8, 0.8)
-		cr.Paint()
-		cr.Fill()
-	})
 
 	app.logArea, err = gtk.LabelNew("Will add messages here")
 	app.panicIfErr(err, "failed to initialize log area")
