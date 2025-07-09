@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"time"
 
 	"gocv.io/x/gocv"
 )
@@ -43,6 +44,7 @@ func (webcam *WebcamDevice) Close() {
 		fmt.Println(":::::: camera was closed type is ", reflect.TypeOf(webcam), " ", webcam)
 	}
 	webcam.isOpen = false
+	time.Sleep(1000 * time.Millisecond)
 }
 
 // func (webcam *WebcamDevice) IsOpened() bool {
@@ -52,3 +54,20 @@ func (webcam *WebcamDevice) Close() {
 // 	isOpened := webcam.isOpen
 // 	return isOpened
 // }
+
+func (webcam *WebcamDevice) CaptureImage(imageFilePath string) bool {
+	if !webcam.isOpen {
+		return false
+	}
+
+	img := gocv.NewMat()
+	defer img.Close()
+	if ok := webcam.captureDevice.Read(&img); !ok {
+		fmt.Println("cannot read video device")
+		return false
+	}
+
+	gocv.IMWrite(imageFilePath, img)
+
+	return true
+}

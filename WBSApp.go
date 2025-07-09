@@ -3,6 +3,7 @@ package main
 import (
 	"WBS/internal/device"
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -15,17 +16,11 @@ import (
 )
 
 type WBSApp struct {
-	viewport      *gtk.DrawingArea
-	logArea       *gtk.Label
-	currentPixbuf *gdk.Pixbuf
-	webcam        *WebcamDevice
-}
-
-func (app *WBSApp) OpenWebcamDevice() {
-	var err error
-	app.webcam.Open()
-	app.panicIfErr(err, "Could not open video device 0")
-	app.webcam.isOpen = true
+	viewport           *gtk.DrawingArea
+	logArea            *gtk.Label
+	currentPixbuf      *gdk.Pixbuf
+	webcam             *WebcamDevice
+	captureImageButton *gtk.Button
 }
 
 func (app *WBSApp) makeMainWindow(title string) *gtk.Window {
@@ -87,68 +82,76 @@ func (app *WBSApp) makeDevicesComboBox() (*gtk.ComboBox, error) {
 		app.panicIfErr(err, "Error converting to string")
 		if str == defaultStoreItemValue {
 			app.closeCamera()
-			return
+		} else {
+			// log.Println("Selected:", str)
+			app.logArea.SetText("Selected device " + str)
+			app.displayVideoInViewport(str)
 		}
-		// log.Println("Selected:", str)
-		app.logArea.SetText("Selected device " + str)
-		app.displayVideoInViewport(str)
 	})
 
 	return combo, nil
 }
 
+func (app *WBSApp) OpenWebcamDevice() {
+	var err error
+	app.webcam.Open()
+	app.panicIfErr(err, "Could not open video device 0")
+	app.webcam.isOpen = true
+	app.captureImageButton.SetSensitive(true)
+}
+
 func (app *WBSApp) closeCamera() {
 	app.webcam.Close()
+	app.captureImageButton.SetSensitive(false)
+}
+
+func (app *WBSApp) captureFrameFromDevice(frame *gocv.Mat) {
+	// fmt.Println("Reading another frame")
+	if !app.webcam.isOpen {
+		return
+	}
+
+	if app.webcam == nil || !app.webcam.isOpen {
+		fmt.Println("webcam is nil or not open")
+		time.Sleep(1 * time.Second)
+		return
+	}
+
+	app.webcam.mtx.Lock()
+	ok := app.webcam.captureDevice.Read(frame)
+	app.webcam.mtx.Unlock()
+	if !ok {
+		log.Println("Cannot read from webcam, waiting for a second")
+		time.Sleep(1000 * time.Millisecond)
+		return
+	}
+
+	if frame.Empty() {
+		log.Println("Frame is empty")
+		return
+	}
+
+	pixbuf, err := device.MatToPixbuf(*frame)
+	if err != nil {
+		log.Println("Failed to convert video frame to pixbuf: ", err)
+		return
+	}
+	app.currentPixbuf = pixbuf
 }
 
 func (app *WBSApp) displayVideoInViewport(device_path string) {
 
+	frame := gocv.NewMat() // avoid instantiating the frame object repeatedly
+
 	app.viewport.Connect("draw", func(da *gtk.DrawingArea, cr *cairo.Context) {
+		app.OpenWebcamDevice()
+		app.captureFrameFromDevice(&frame)
 		if app.currentPixbuf != nil {
 			gtk.GdkCairoSetSourcePixBuf(cr, app.currentPixbuf, 0, 0)
 			cr.Paint()
 		}
+		app.viewport.QueueDraw() // queue the next call of draw and reading of the frame
 	})
-	app.OpenWebcamDevice()
-
-	frame := gocv.NewMat()
-
-	go func() {
-		defer app.webcam.Close()
-		defer frame.Close()
-
-		for {
-			// fmt.Println("Reading another frame")
-			if !app.webcam.isOpen {
-				return
-			}
-
-			// if app.webcam == nil || !app.webcam.isOpen {
-			// 	time.Sleep(1 * time.Second)
-			// 	break
-			// }
-
-			ok := app.webcam.captureDevice.Read(&frame)
-			if !ok {
-				log.Println("Cannot read from webcam")
-				continue
-			}
-
-			if frame.Empty() {
-				log.Println("Frame is empty")
-				continue
-			}
-
-			pixbuf, err := device.MatToPixbuf(frame)
-			if err != nil {
-				log.Println("Failed to convert video frame to pixbuf: ", err)
-				continue
-			}
-			app.currentPixbuf = pixbuf
-			app.viewport.QueueDraw()
-			time.Sleep(30 * time.Millisecond)
-		}
-	}()
 
 }
 
@@ -184,4 +187,13 @@ func (app *WBSApp) makeMenuBar() *gtk.MenuBar {
 	menubar.Append(fileMenu)
 
 	return menubar
+}
+
+func (app *WBSApp) RefreshDevicesList() {
+	fmt.Println("RefreshDevicesList .............")
+}
+
+func (app *WBSApp) CaptureImage() {
+	// get the next file ID in project folder using the project
+	fmt.Println("SaveImage ......................")
 }
