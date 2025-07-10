@@ -1,13 +1,10 @@
 package main
 
 import (
-	"runtime"
-
 	"github.com/gotk3/gotk3/gtk"
 )
 
 func main() {
-	runtime.GOMAXPROCS(1)
 	gtk.Init(nil)
 
 	var app WBSApp
@@ -27,7 +24,9 @@ func main() {
 
 	refreshDevicesButton, err := gtk.ButtonNewWithLabel("Refresh devices")
 	app.panicIfErr(err, "Unable to create the refresh button:")
-	refreshDevicesButton.Connect("clicked", app.RefreshDevicesList)
+	refreshDevicesButton.Connect("clicked", func() {
+		app.RefreshDevicesList()
+	})
 
 	app.captureImageButton, err = gtk.ButtonNewWithLabel("Capture image")
 	app.panicIfErr(err, "Unable to create the refresh button:")

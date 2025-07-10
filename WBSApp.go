@@ -35,9 +35,12 @@ func (app *WBSApp) makeViewport() {
 		if !app.cameraShouldBeOpen {
 			return
 		}
+
 		app.OpenWebcamDevice()
-		frame := gocv.NewMat() // avoid instantiating the frame object repeatedly
-		app.captureFrameFromDevice(&frame)
+		// TODO maybe memory leak from here ?
+		// frame := gocv.NewMat() // avoid instantiating the frame object repeatedly
+		// app.captureFrameFromDevice(&frame)
+		app.captureFrameFromDevice()
 		if app.currentPixbuf != nil {
 			gtk.GdkCairoSetSourcePixBuf(cr, app.currentPixbuf, 0, 0)
 			cr.Paint()
@@ -53,7 +56,9 @@ func (app *WBSApp) makeMainWindow(title string) *gtk.Window {
 	win.SetTitle(title)
 	// win.SetDefaultSize(1024, 768)
 	win.Maximize()
-	win.Connect("destroy", gtk.MainQuit)
+	win.Connect("destroy", func() {
+		gtk.MainQuit()
+	})
 
 	return win
 }
@@ -131,8 +136,10 @@ func (app *WBSApp) closeCamera() {
 	app.captureImageButton.SetSensitive(false)
 }
 
-func (app *WBSApp) captureFrameFromDevice(frame *gocv.Mat) {
-	// fmt.Println("Reading another frame")
+// func (app *WBSApp) captureFrameFromDevice(frame *gocv.Mat) {
+func (app *WBSApp) captureFrameFromDevice() {
+	frame := gocv.NewMat() // fmt.Println("Reading another frame")
+	defer frame.Close()
 	if !app.webcam.isOpen {
 		return
 	}
@@ -144,7 +151,7 @@ func (app *WBSApp) captureFrameFromDevice(frame *gocv.Mat) {
 	}
 
 	app.webcam.mtx.Lock()
-	ok := app.webcam.captureDevice.Read(frame)
+	ok := app.webcam.captureDevice.Read(&frame)
 	app.webcam.mtx.Unlock()
 	if !ok {
 		log.Println("Cannot read from webcam, waiting for a second")
@@ -157,7 +164,7 @@ func (app *WBSApp) captureFrameFromDevice(frame *gocv.Mat) {
 		return
 	}
 
-	pixbuf, err := device.MatToPixbuf(*frame)
+	pixbuf, err := device.MatToPixbuf(frame)
 	if err != nil {
 		log.Println("Failed to convert video frame to pixbuf: ", err)
 		return
