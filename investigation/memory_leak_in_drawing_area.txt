@@ -1,0 +1,16 @@
+In go/pkg/mod/github.com/gotk3/gotk3@v0.6.5-0.20240618185848-ff349ae13f56/glib/connect.go
+
+// Circular References
+//
+// To prevent circular references, prefer declaring Connect functions like so:
+//
+//    obj.Connect(func(obj *ObjType) { obj.Do() })
+//
+// Instead of directly referencing the object from outside like so:
+//
+//    obj.Connect(func() { obj.Do() })
+//
+// When using Connect, beware of referencing variables outside the closure that
+// may cause a circular reference that prevents both Go from garbage collecting
+// the callback and GTK from successfully unreferencing its values.
+//
