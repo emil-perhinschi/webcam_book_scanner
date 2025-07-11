@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gotk3/gotk3/cairo"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -16,7 +15,7 @@ import (
 )
 
 type WBSApp struct {
-	viewport           *gtk.DrawingArea
+	viewport           *gtk.Image
 	logArea            *gtk.Label
 	currentPixbuf      *gdk.Pixbuf
 	webcam             *WebcamDevice
@@ -26,27 +25,9 @@ type WBSApp struct {
 
 func (app *WBSApp) makeViewport() {
 	var err error
-	app.viewport, err = gtk.DrawingAreaNew()
+	app.viewport, err = gtk.ImageNew()
 	app.panicIfErr(err, "Unable to create drawing area:")
-	app.viewport.SetSizeRequest(400, 200)
-	// Connect the draw signal to draw on the drawing area
-
-	app.viewport.Connect("draw", func(da *gtk.DrawingArea, cr *cairo.Context) {
-		if !app.cameraShouldBeOpen {
-			return
-		}
-
-		app.OpenWebcamDevice()
-		// TODO maybe memory leak from here ?
-		// frame := gocv.NewMat() // avoid instantiating the frame object repeatedly
-		// app.captureFrameFromDevice(&frame)
-		app.captureFrameFromDevice()
-		if app.currentPixbuf != nil {
-			gtk.GdkCairoSetSourcePixBuf(cr, app.currentPixbuf, 0, 0)
-			cr.Paint()
-		}
-		app.viewport.QueueDraw() // queue the next call of draw and reading of the frame
-	})
+	app.viewport.SetSizeRequest(1024, 768)
 }
 
 func (app *WBSApp) makeMainWindow(title string) *gtk.Window {
@@ -99,8 +80,9 @@ func (app *WBSApp) makeDevicesComboBox() (*gtk.ComboBox, error) {
 
 	combo.AddAttribute(renderer, "text", 0)
 	combo.SetActive(0) // Set default selection
-	combo.Connect("changed", func() {
-		iter, err := combo.GetActiveIter()
+
+	combo.Connect("changed", func(thisCombo *gtk.ComboBox) {
+		iter, err := thisCombo.GetActiveIter()
 		app.panicIfErr(err, "Error getting active iter:")
 
 		value, err := store.GetValue(iter, 0)
@@ -115,7 +97,6 @@ func (app *WBSApp) makeDevicesComboBox() (*gtk.ComboBox, error) {
 			// log.Println("Selected:", str)
 			app.logArea.SetText("Selected device " + str)
 			app.cameraShouldBeOpen = true
-			app.displayVideoInViewport(str)
 		}
 	})
 
@@ -136,14 +117,7 @@ func (app *WBSApp) closeCamera() {
 	app.captureImageButton.SetSensitive(false)
 }
 
-// func (app *WBSApp) captureFrameFromDevice(frame *gocv.Mat) {
-func (app *WBSApp) captureFrameFromDevice() {
-	frame := gocv.NewMat() // fmt.Println("Reading another frame")
-	defer frame.Close()
-	if !app.webcam.isOpen {
-		return
-	}
-
+func (app *WBSApp) captureFrameFromDevice(frame *gocv.Mat) {
 	if app.webcam == nil || !app.webcam.isOpen {
 		fmt.Println("webcam is nil or not open")
 		// time.Sleep(1 * time.Second)
@@ -151,7 +125,7 @@ func (app *WBSApp) captureFrameFromDevice() {
 	}
 
 	app.webcam.mtx.Lock()
-	ok := app.webcam.captureDevice.Read(&frame)
+	ok := app.webcam.captureDevice.Read(frame)
 	app.webcam.mtx.Unlock()
 	if !ok {
 		log.Println("Cannot read from webcam, waiting for a second")
@@ -163,21 +137,15 @@ func (app *WBSApp) captureFrameFromDevice() {
 		log.Println("Frame is empty")
 		return
 	}
-
+	// something happens in the next line related to the memory leak
 	pixbuf, err := device.MatToPixbuf(frame)
 	if err != nil {
 		log.Println("Failed to convert video frame to pixbuf: ", err)
+		pixbuf = nil
 		return
 	}
 	app.currentPixbuf = pixbuf
-}
-
-func (app *WBSApp) displayVideoInViewport(device_path string) {
-	if !app.cameraShouldBeOpen {
-		return
-	}
-
-	app.viewport.QueueDraw()
+	pixbuf = nil
 }
 
 func (app *WBSApp) makeMenuBar() *gtk.MenuBar {

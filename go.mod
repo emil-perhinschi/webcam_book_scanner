@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/korandiz/v4l v1.1.0 // indirect
 	gocv.io/x/gocv v0.41.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

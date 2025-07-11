@@ -76,9 +76,9 @@ func listFilesByPattern(pattern string) ([]string, error) {
 	return result, nil
 }
 
-func MatToPixbuf(mat gocv.Mat) (*gdk.Pixbuf, error) {
+func MatToPixbuf(mat *gocv.Mat) (*gdk.Pixbuf, error) {
 	// Convert Mat to bytes (assuming RGB image)
-	data, err := gocv.IMEncode(".png", mat)
+	data, err := gocv.IMEncode(".png", *mat)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode Mat to PNG: %v", err)
 	}
@@ -99,6 +99,7 @@ func MatToPixbuf(mat gocv.Mat) (*gdk.Pixbuf, error) {
 
 	// Get the Pixbuf from the loader
 	pixbuf, err := loader.GetPixbuf()
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Pixbuf: %v", err)
 	}

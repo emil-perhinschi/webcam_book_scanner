@@ -1,7 +1,11 @@
 package main
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/gotk3/gotk3/gtk"
+	"gocv.io/x/gocv"
 )
 
 func main() {
@@ -51,6 +55,35 @@ func main() {
 	// Show all widgets
 	win.ShowAll()
 
+	go func(myapp *WBSApp) {
+		frame := gocv.NewMat()
+		defer frame.Close()
+		// counter := 0
+		for {
+			if myapp.cameraShouldBeOpen {
+				myapp.OpenWebcamDevice()
+				// if counter == 0 {
+				// running this only once stops the leak
+				myapp.captureFrameFromDevice(&frame)
+				// counter++
+				// }
+				myapp.viewport.SetFromPixbuf(app.currentPixbuf)
+				app.currentPixbuf = nil
+
+				// this does not seem to indicate Mat-s are leaking
+				// go run -tags matprofile .
+				// var b bytes.Buffer
+				// gocv.MatProfile.WriteTo(&b, 1)
+				// fmt.Print(b.String())
+				// time.Sleep(33 * time.Millisecond)
+			} else {
+				fmt.Println("camera not open, sleeping")
+				time.Sleep(1 * time.Second)
+			}
+		}
+	}(&app)
+
 	// Start the GTK main loop
 	gtk.Main()
+
 }
