@@ -1,16 +1,16 @@
 package main
 
 import (
-	"WBS/internal/device"
+	"WBS/internal/v4l2"
 	"errors"
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
+	"github.com/korandiz/v4l"
 	"gocv.io/x/gocv"
 )
 
@@ -18,7 +18,7 @@ type WBSApp struct {
 	viewport           *gtk.Image
 	logArea            *gtk.Label
 	currentPixbuf      *gdk.Pixbuf
-	webcam             *WebcamDevice
+	webcam             *V4l2Device
 	captureImageButton *gtk.Button
 	cameraShouldBeOpen bool
 }
@@ -58,7 +58,7 @@ func (app *WBSApp) makeDevicesComboBox() (*gtk.ComboBox, error) {
 	defaultStoreItem := store.Append()
 	store.SetValue(defaultStoreItem, 0, defaultStoreItemValue)
 
-	items, err := device.ListDevices()
+	items, err := v4l2.ListDevices()
 	if err != nil {
 		errorString := err.Error()
 		if !strings.Contains(errorString, "ls: cannot access '/dev/v4l/by-id/usb*'") {
@@ -97,15 +97,17 @@ func (app *WBSApp) makeDevicesComboBox() (*gtk.ComboBox, error) {
 			// log.Println("Selected:", str)
 			app.logArea.SetText("Selected device " + str)
 			app.cameraShouldBeOpen = true
+			// go app.webcam.CaptureFrames(str, nil)
+
 		}
 	})
 
 	return combo, nil
 }
 
-func (app *WBSApp) OpenWebcamDevice() {
+func (app *WBSApp) OpenWebcamDevice(devicePath string, config v4l.DeviceConfig) {
 	// var err error // why do I need this ?
-	app.webcam.Open()
+	app.webcam.CaptureFrames(devicePath, config)
 	// app.panicIfErr(err, "Could not open video device 0")
 	app.webcam.isOpen = true
 	app.captureImageButton.SetSensitive(true)
@@ -117,36 +119,36 @@ func (app *WBSApp) closeCamera() {
 	app.captureImageButton.SetSensitive(false)
 }
 
-func (app *WBSApp) captureFrameFromDevice(frame *gocv.Mat) {
-	if app.webcam == nil || !app.webcam.isOpen {
-		fmt.Println("webcam is nil or not open")
-		// time.Sleep(1 * time.Second)
-		return
-	}
+// func (app *WBSApp) captureFrameFromDevice(frame *gocv.Mat) {
+// 	if app.webcam == nil || !app.webcam.isOpen {
+// 		fmt.Println("webcam is nil or not open")
+// 		// time.Sleep(1 * time.Second)
+// 		return
+// 	}
 
-	app.webcam.mtx.Lock()
-	ok := app.webcam.captureDevice.Read(frame)
-	app.webcam.mtx.Unlock()
-	if !ok {
-		log.Println("Cannot read from webcam, waiting for a second")
-		time.Sleep(1000 * time.Millisecond)
-		return
-	}
+// 	app.webcam.mtx.Lock()
+// 	ok := app.webcam.captureDevice.Read(frame)
+// 	app.webcam.mtx.Unlock()
+// 	if !ok {
+// 		log.Println("Cannot read from webcam, waiting for a second")
+// 		time.Sleep(1000 * time.Millisecond)
+// 		return
+// 	}
 
-	if frame.Empty() {
-		log.Println("Frame is empty")
-		return
-	}
-	// something happens in the next line related to the memory leak
-	pixbuf, err := device.MatToPixbuf(frame)
-	if err != nil {
-		log.Println("Failed to convert video frame to pixbuf: ", err)
-		pixbuf = nil
-		return
-	}
-	app.currentPixbuf = pixbuf
-	pixbuf = nil
-}
+// 	if frame.Empty() {
+// 		log.Println("Frame is empty")
+// 		return
+// 	}
+// 	// something happens in the next line related to the memory leak
+// 	pixbuf, err := app.MatToPixbuf(frame)
+// 	if err != nil {
+// 		log.Println("Failed to convert video frame to pixbuf: ", err)
+// 		pixbuf = nil
+// 		return
+// 	}
+// 	app.currentPixbuf = pixbuf
+// 	pixbuf = nil
+// }
 
 func (app *WBSApp) makeMenuBar() *gtk.MenuBar {
 	// Create the menubar
@@ -190,3 +192,59 @@ func (app *WBSApp) CaptureImage() {
 	// get the next file ID in project folder using the project
 	fmt.Println("SaveImage ......................")
 }
+
+func (app *WBSApp) MatToPixbuf(mat *gocv.Mat) (*gdk.Pixbuf, error) {
+
+	// Convert Mat to bytes (assuming RGB image)
+	data, err := gocv.IMEncode(".png", *mat)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode Mat to PNG: %v", err)
+	}
+	defer data.Close()
+
+	// Create a PixbufLoader to load the image data
+	loader, err := gdk.PixbufLoaderNew()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create PixbufLoader: %v", err)
+	}
+
+	// Write the image data to the loader
+	pixbuf, err := loader.WriteAndReturnPixbuf(data.GetBytes())
+	if err != nil {
+		return nil, fmt.Errorf("failed to write to PixbufLoader: %v", err)
+	}
+
+	// // Get the Pixbuf from the loader
+	// pixbuf, err := loader.GetPixbuf()
+	err = loader.Close()
+	if err != nil {
+		return nil, fmt.Errorf("failed to close loader: %v", err)
+	}
+
+	return pixbuf, nil
+}
+
+/*
+	go func(myapp *WBSApp) {
+		frame := gocv.NewMat()
+		defer frame.Close()
+		// counter := 0
+		for {
+			if myapp.cameraShouldBeOpen {
+				myapp.OpenWebcamDevice()
+				// if counter == 0 {
+				// running this only once stops the leak
+				myapp.captureFrameFromDevice(&frame)
+				// counter++
+				// }
+				myapp.viewport.SetFromPixbuf(app.currentPixbuf)
+				app.currentPixbuf = nil
+
+				time.Sleep(33 * time.Millisecond)
+			} else {
+				fmt.Println("camera not open, sleeping")
+				time.Sleep(1 * time.Second)
+			}
+		}
+	}(&app)
+*/

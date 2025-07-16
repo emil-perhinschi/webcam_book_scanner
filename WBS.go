@@ -1,18 +1,19 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"time"
 
 	"github.com/gotk3/gotk3/gtk"
-	"gocv.io/x/gocv"
+	"github.com/korandiz/v4l"
+	"github.com/korandiz/v4l/fmt/yuyv"
 )
 
 func main() {
 	gtk.Init(nil)
 
 	var app WBSApp
-	app.webcam = &WebcamDevice{}
+	app.webcam = NewW4l2Device(&app)
 
 	win := app.makeMainWindow("Webcam book scanner")
 
@@ -54,36 +55,46 @@ func main() {
 
 	// Show all widgets
 	win.ShowAll()
-
-	go func(myapp *WBSApp) {
-		frame := gocv.NewMat()
-		defer frame.Close()
-		// counter := 0
-		for {
-			if myapp.cameraShouldBeOpen {
-				myapp.OpenWebcamDevice()
-				// if counter == 0 {
-				// running this only once stops the leak
-				myapp.captureFrameFromDevice(&frame)
-				// counter++
-				// }
-				myapp.viewport.SetFromPixbuf(app.currentPixbuf)
-				app.currentPixbuf = nil
-
-				// this does not seem to indicate Mat-s are leaking
-				// go run -tags matprofile .
-				// var b bytes.Buffer
-				// gocv.MatProfile.WriteTo(&b, 1)
-				// fmt.Print(b.String())
-				// time.Sleep(33 * time.Millisecond)
-			} else {
-				fmt.Println("camera not open, sleeping")
-				time.Sleep(1 * time.Second)
-			}
-		}
-	}(&app)
-
+	fillConfigList()
+	// counter := 0
+	// glib.IdleAdd(func() bool {
+	// 	fmt.Println(counter)
+	// 	counter++
+	// 	if counter > 10 {
+	// 		return false
+	// 	}
+	// 	time.Sleep(1000 * time.Millisecond) // this runs in the main thread and it blocks the gui
+	// 	return true
+	// })
 	// Start the GTK main loop
 	gtk.Main()
 
+}
+
+func fillConfigList() error {
+	dev, err := v4l.Open(`/dev/v4l/by-id/usb-046d_Logitech_BRIO_50316219-video-index0`)
+	if err != nil {
+		return errors.New("Open: " + err.Error())
+	}
+	defer dev.Close()
+	cfgs, err := dev.ListConfigs()
+	if err != nil {
+		return errors.New("ListConfigs: " + err.Error())
+	}
+	fmt.Println(cfgs)
+	for i := range cfgs {
+		if cfgs[i].Format != yuyv.FourCC {
+			continue
+		}
+		fmt.Println(cfg2str(cfgs[i]), cfgs[i])
+	}
+
+	return nil
+}
+
+func cfg2str(cfg v4l.DeviceConfig) string {
+	w := cfg.Width
+	h := cfg.Height
+	f := cfg.FPS
+	return fmt.Sprintf("%dx%d @ %.4g FPS", w, h, float64(f.N)/float64(f.D))
 }

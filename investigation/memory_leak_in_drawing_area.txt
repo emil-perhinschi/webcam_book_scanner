@@ -18,18 +18,26 @@ In go/pkg/mod/github.com/gotk3/gotk3@v0.6.5-0.20240618185848-ff349ae13f56/glib/c
 
 
 	app.viewport.Connect("draw", func(da *gtk.DrawingArea, cr *cairo.Context) {
-		if !app.cameraShouldBeOpen {
-			return
-		}
-
-		app.OpenWebcamDevice()
-		// TODO maybe memory leak from here ?
-		// frame := gocv.NewMat() // avoid instantiating the frame object repeatedly
-		// app.captureFrameFromDevice(&frame)
-		app.captureFrameFromDevice()
-		if app.currentPixbuf != nil {
-			gtk.GdkCairoSetSourcePixBuf(cr, app.currentPixbuf, 0, 0)
-			cr.Paint()
-		}
-		app.viewport.QueueDraw() // queue the next call of draw and reading of the frame
+		
 	})
+
+
+---------------------
+
+IdleAdd might be the solution
+
+https://golang.hotexamples.com/examples/github.com.andre-hub.gotk3.glib/-/IdleAdd/golang-idleadd-function-examples.html
+
+
+https://github.com/gotk3/gotk3-examples/blob/d13b559ce37ecd7e8b777fc4d59ea9cb71006cc0/gtk-examples/goroutines/goroutines.go#L50
+
+
+-------------------
+
+how to detect memory leak in Gocv
+
+// this does not seem to indicate Mat-s are leaking
+// go run -tags matprofile .
+// var b bytes.Buffer
+// gocv.MatProfile.WriteTo(&b, 1)
+// fmt.Print(b.String())

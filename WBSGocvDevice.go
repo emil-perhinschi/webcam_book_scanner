@@ -2,20 +2,19 @@ package main
 
 import (
 	"fmt"
-	"reflect"
 	"sync"
 	"time"
 
 	"gocv.io/x/gocv"
 )
 
-type WebcamDevice struct {
+type WebcamGocvDevice struct {
 	mtx           sync.Mutex
 	captureDevice *gocv.VideoCapture
 	isOpen        bool
 }
 
-func (webcam *WebcamDevice) Open() {
+func (webcam *WebcamGocvDevice) Open() {
 	if webcam.isOpen {
 		return
 	}
@@ -31,7 +30,7 @@ func (webcam *WebcamDevice) Open() {
 	webcam.isOpen = true
 }
 
-func (webcam *WebcamDevice) Close() {
+func (webcam *WebcamGocvDevice) Close() {
 	webcam.mtx.Lock()
 	defer webcam.mtx.Unlock()
 	if !webcam.isOpen {
@@ -39,15 +38,15 @@ func (webcam *WebcamDevice) Close() {
 	}
 
 	if webcam.captureDevice != nil && webcam.captureDevice.IsOpened() {
-		fmt.Println(":::::: camera is open, getting ready to close ", reflect.TypeOf(webcam), " ", webcam)
+		// fmt.Println(":::::: camera is open, getting ready to close ", reflect.TypeOf(webcam), " ", webcam)
 		webcam.captureDevice.Close()
-		fmt.Println(":::::: camera was closed type is ", reflect.TypeOf(webcam), " ", webcam)
+		// fmt.Println(":::::: camera was closed type is ", reflect.TypeOf(webcam), " ", webcam)
 	}
 	webcam.isOpen = false
 	time.Sleep(1000 * time.Millisecond)
 }
 
-// func (webcam *WebcamDevice) IsOpened() bool {
+// func (webcam *WebcamGocvDevice) IsOpened() bool {
 // 	if webcam.captureDevice == nil {
 // 		return false
 // 	}
@@ -55,7 +54,7 @@ func (webcam *WebcamDevice) Close() {
 // 	return isOpened
 // }
 
-func (webcam *WebcamDevice) CaptureImage(imageFilePath string) bool {
+func (webcam *WebcamGocvDevice) CaptureImage(imageFilePath string) bool {
 	if !webcam.isOpen {
 		return false
 	}
